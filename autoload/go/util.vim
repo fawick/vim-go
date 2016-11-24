@@ -43,6 +43,17 @@ function! go#util#IsWin() abort
   return 0
 endfunction
 
+" IsWinUnix returns 1 if the current environment is Cygwin or MSYS-based (Git
+" for Windows, MSYS2), and 0 otherwise.
+"
+" In those environments has('winNN') returns 0 and Vim uses Unix-style path
+" names internally. The Go tools on the other hand expect Windows-style path
+" notation in command line arguments which matters especially for absolute
+" path names.
+function! go#util#IsWinUnix()
+  return has('win32unix')
+endfunction
+
 function! go#util#has_job() abort
   " job was introduced in 7.4.xxx however there are multiple bug fixes and one
   " of the latest is 8.0.0087 which is required for a stable async API.
@@ -72,6 +83,49 @@ function! go#util#env(key) abort
 
   let s:env_cache[l:key] = l:var
   return l:var
+endfunction
+
+" UnixToWindows converts Unix to Windows path notation when the cygpath tool
+" is available.
+function! go#util#UnixToWindows(path)
+  if executable('cygpath')
+    " NOTE: cygpath also translates folder names from the internal to the
+    " external location, /tmp is substituted with the contents of the %TEMP%
+    " environment variable for example.
+    return substitute(go#util#System('cygpath -w ' . a:path), '\n', '', '')
+  endif
+
+  return a:path
+endfunction
+
+" WindowsToUnix converts Windows to Unix path notation when the cygpath tool
+" is available.
+function! go#util#WindowsToUnix(path)
+  if executable('cygpath')
+    return substitute(go#util#System('cygpath -u ' . a:path), '\n', '', '')
+  endif
+
+  return a:path
+endfunction
+
+" ToToolPath converts file path names (command line arguments) to the format
+" expected by the external tools called.
+function! go#util#ToToolPath(str)
+  if go#util#IsWinUnix()
+    return go#util#UnixToWindows(a:str)
+  endif
+
+  return a:str
+endfunction
+
+" ToInternalPath converts path name output created by external tools to the
+" internal format expected by Vim.
+function! go#util#ToInternalPath(str)
+  if go#util#IsWinUnix()
+    return go#util#WindowsToUnix(a:str)
+  endif
+
+  return a:str
 endfunction
 
 function! go#util#goarch() abort
