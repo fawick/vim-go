@@ -33,7 +33,7 @@ function! s:guru_cmd(args) range abort
   " start constructing the command
   let cmd = [bin_path]
 
-  let filename = fnamemodify(expand("%"), ':p:gs?\\?/?')
+  let filename = fnameescape(go#util#ToExternalPath(fnamemodify(expand("%"), ':p:gs?\\?/?')))
   if &modified
     let sep = go#util#LineEnding()
     let content  = join(getline(1, '$'), sep )

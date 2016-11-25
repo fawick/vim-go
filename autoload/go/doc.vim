@@ -133,7 +133,7 @@ function! s:gogetdoc(json) abort
   let cmd =  [bin_path]
 
   let offset = go#util#OffsetCursor()
-  let fname = expand("%:p:gs!\\!/!")
+  let fname = go#util#ToExternalPath(expand("%:p:gs!\\!/!"))
   let pos = shellescape(fname.':#'.offset)
 
   let cmd += ["-pos", pos]
