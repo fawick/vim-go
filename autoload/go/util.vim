@@ -50,6 +50,14 @@ endfunction
 " names internally. The Go tools on the other hand expect Windows-style path
 " notation in command line arguments which matters especially for absolute
 " path names.
+"
+" Additionally, $GOPATH may be set either as environment variable on the host
+" system (Windows) in Windows path notation, or overwritten in the MSYS2
+" environment in Unix path notation.
+"
+" Path names in command line arguments, the contents of $GOPATH, and tool
+" output containing path names must therefore converted between internal and
+" external path notation with ToInternalPath and ToExternalPath.
 function! go#util#IsWinUnix()
   return has('win32unix')
 endfunction
@@ -85,44 +93,32 @@ function! go#util#env(key) abort
   return l:var
 endfunction
 
-" UnixToWindows converts Unix to Windows path notation when the cygpath tool
-" is available.
-function! go#util#UnixToWindows(path)
-  if executable('cygpath')
+" ToExternalPath converts file path names (command line arguments) to the
+" format expected by the external tools called. Path lists (for example
+" $GOPATH with multiple entries) are also converted.
+function! go#util#ToExternalPath(str)
+  if go#util#IsWinUnix() && executable('cygpath')
+    " Convert Unix to Windows (-w) path notation of a single path or a path
+    " list string (-p) when the cygpath tool is available. See IsWinUnix.
+    "
     " NOTE: cygpath also translates folder names from the internal to the
     " external location, /tmp is substituted with the contents of the %TEMP%
-    " environment variable for example.
-    return substitute(go#util#System('cygpath -w ' . a:path), '\n', '', '')
-  endif
-
-  return a:path
-endfunction
-
-" WindowsToUnix converts Windows to Unix path notation when the cygpath tool
-" is available.
-function! go#util#WindowsToUnix(path)
-  if executable('cygpath')
-    return substitute(go#util#System('cygpath -u ' . a:path), '\n', '', '')
-  endif
-
-  return a:path
-endfunction
-
-" ToToolPath converts file path names (command line arguments) to the format
-" expected by the external tools called.
-function! go#util#ToToolPath(str)
-  if go#util#IsWinUnix()
-    return go#util#UnixToWindows(a:str)
+    " environment variable for example. Therefore simply using string
+    " processing is not an option here.
+    return substitute(go#util#System('cygpath -w -p ' . shellescape(a:str)), '\n', '', '')
   endif
 
   return a:str
 endfunction
 
 " ToInternalPath converts path name output created by external tools to the
-" internal format expected by Vim.
+" internal format expected by Vim. Path lists (for example $GOPATH with
+" multiple entries) are also converted.
 function! go#util#ToInternalPath(str)
-  if go#util#IsWinUnix()
-    return go#util#WindowsToUnix(a:str)
+  if go#util#IsWinUnix() && executable('cygpath')
+    " Convert Windows to Unix (-u) path notation of a single path or path list
+    " string (-p) when the cygpath tool is available.
+    return substitute(go#util#System('cygpath -u -p ' . shellescape(a:str)), '\n', '', '')
   endif
 
   return a:str

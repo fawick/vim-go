@@ -6,7 +6,7 @@ function! go#def#Jump(mode) abort
   let $GOPATH = go#path#Detect()
 
   let fname = fnamemodify(expand("%"), ':p:gs?\\?/?')
-  let fname = fnameescape(go#util#ToToolPath(fname))
+  let fname = fnameescape(go#util#ToExternalPath(fname))
 
   " so guru right now is slow for some people. previously we were using
   " godef which also has it's own quirks. But this issue come up so many

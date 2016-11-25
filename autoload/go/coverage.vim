@@ -46,14 +46,14 @@ function! go#coverage#Buffer(bang, ...) abort
 
   if go#util#has_job()
     call s:coverage_job({
-          \ 'cmd': ['go', 'test', '-coverprofile',  fnameescape(go#util#ToToolPath(l:tmpname))],
-          \ 'custom_cb': function('s:coverage_callback', [fnameescape(go#util#ToToolPath(l:tmpname))]),
+          \ 'cmd': ['go', 'test', '-coverprofile',  fnameescape(go#util#ToExternalPath(l:tmpname))],
+          \ 'custom_cb': function('s:coverage_callback', [fnameescape(go#util#ToExternalPath(l:tmpname))]),
           \ 'bang': a:bang,
           \ })
     return
   endif
 
-  let args = [a:bang, 0, "-coverprofile",  fnameescape(go#util#ToToolPath(l:tmpname))]
+  let args = [a:bang, 0, "-coverprofile",  fnameescape(go#util#ToExternalPath(l:tmpname))]
   if a:0
     call extend(args, a:000)
   endif
