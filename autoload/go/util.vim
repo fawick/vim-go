@@ -43,8 +43,8 @@ function! go#util#IsWin() abort
   return 0
 endfunction
 
-" IsWinUnix returns 1 if the current environment is Cygwin or MSYS-based (Git
-" for Windows, MSYS2), and 0 otherwise.
+" IsWinUnix returns 1 when the current environment is Cygwin or MSYS-based
+" (Git for Windows, MSYS2), and 0 otherwise.
 "
 " In those environments has('winNN') returns 0 and Vim uses Unix-style path
 " names internally. The Go tools on the other hand expect Windows-style path
@@ -52,8 +52,8 @@ endfunction
 " path names.
 "
 " Additionally, $GOPATH may be set either as environment variable on the host
-" system (Windows) in Windows path notation, or overwritten in the MSYS2
-" environment in Unix path notation.
+" system (Windows) in Windows path notation, or in the MSYS2 environment in
+" Unix path notation.
 "
 " Path names in command line arguments, the contents of $GOPATH, and tool
 " output containing path names must therefore converted between internal and
